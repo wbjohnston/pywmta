@@ -50,8 +50,8 @@ class WMTA(object):
         service += '.svc' #append service suffix
 
         #if in json mode prepend a j to the endpoint name
-        if self.mode == 'json':
-            endpoint = 'j' + endpoint
+        # if self.mode == 'json':
+        #     endpoint = 'j' + endpoint
 
         #prepare query
         if type(query) is dict:
@@ -59,21 +59,26 @@ class WMTA(object):
             for key in query:
                 if type(query[key]) is list:
                     query[key] = ', '.join(query[key])
+            query = _urlencode(query)
+        elif type(query) is list:
+            query = ', '.join(query)
 
-        query = _urlencode(query)
 
-        path = '/'.join((self.BASE_URL, service, self.mode))
-        return '?'.join(path, query) #full url query
+        path = '/'.join((self.BASE_URL, service, self.mode, endpoint))
+        return '/'.join((path, query)) #full url query
 
 
     def _fetch(self, service, endpoint, query):
         url = self._construct_url(service, endpoint, query)
         req = _Request(url, headers={'api_key': self.api_key})
-
+        print(req.full_url)
         with _urlopen(req) as r:
-            response = str(r.read(), encode='utf-8')
+            response = str(r.read(), encoding='utf-8')
 
         return self._decode(response)
 
+
+    def getRailPrediction(self, stationCodes):
+        return self._fetch('StationPrediction', 'GetPrediction', stationCodes)['Trains']
 
 
