@@ -7,6 +7,14 @@ if __name__ == '__main__':
         key = f.read()
 
     w = WMTA(key)
-    print(json.dumps(w.getRailPrediction(['B03']), indent=4))
+    try:
+        print(json.dumps(w.get_rail_prediction(['B03']), indent=4))
+    except Exception:
+        print('failed')
+
+    try:
+        print(json.dumps(w.get_bus_prediction(['1001195']), indent=4))
+    except:
+        print('failed')
 
 
