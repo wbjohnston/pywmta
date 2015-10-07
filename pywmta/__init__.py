@@ -1,4 +1,4 @@
-uthor__ = 'Bonk'
+__author__ = 'Will Johnston'
 
 import json
 import requests
