@@ -1,14 +1,10 @@
 __author__ = 'wbjohnston'
 import unittest
 import os
-import logging
 import json
 from pywmta import WMTAApi
-import requests
-from requests.exceptions import HTTPError
 
 BASE_DIR = os.path.dirname(__file__)
-
 KEYFILE_PATH = '/'.join((BASE_DIR, 'resources/key'))
 
 class PyWMTATests(unittest.TestCase):
@@ -20,7 +16,7 @@ class PyWMTATests(unittest.TestCase):
             raise e
 
         wmta = WMTAApi(key)
-        response = wmta.rail_station.information('A01')
+        response = wmta.rail_station.information()
 
         print(json.dumps(response, indent=4, separators=(',', ': ')))
 
