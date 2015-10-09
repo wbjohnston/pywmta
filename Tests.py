@@ -8,17 +8,16 @@ BASE_DIR = os.path.dirname(__file__)
 KEYFILE_PATH = '/'.join((BASE_DIR, 'resources/key'))
 
 class PyWMTATests(unittest.TestCase):
+    routes = ['10A', '10B', '10C', '11Y', '15K']
+    stations = ['1A']
     def test_line_request(self):
-        try:
-            with open(KEYFILE_PATH, 'r') as f:
-                key = f.read()
-        except Exception as e:
-            raise e
+        #read in key
+        with open(KEYFILE_PATH, 'r') as f:
+            key = f.read()
 
         wmta = WMTAApi(key)
-        response = wmta.rail_station.information()
-
-        print(json.dumps(response, indent=4, separators=(',', ': ')))
+        data = wmta.rail_station.lines()
+        self.assertIsNotNone(data)
 
 
 

@@ -9,12 +9,6 @@ API_BASE_URL = 'https://api.wmata.com/{service}/json/{endpoint}'
 class WMTAException(Exception):
     pass
 
-# class Response(requests.Response):
-#     def __init__(self, body):
-#         super().__init__()
-#         self.json = json.loads(self.text)
-
-
 class BaseAPI:
     def __init__(self, api_key=None, timeout=DEFAULT_TIMEOUT):
         self.api_key = api_key
@@ -58,7 +52,8 @@ class Busroute(BaseAPI):
             'Lon': lon,
             'Radius': radius
         }
-        return self.get(self.RESOURCE_NAME, 'jBusPositions', params=data).json
+        return self.get(self.RESOURCE_NAME, 'jBusPositions',
+                        params=data).json['BusPositions']
 
     def path_details(self, route_id, date=None):
         data = {
@@ -68,7 +63,7 @@ class Busroute(BaseAPI):
         return self.get(self.RESOURCE_NAME, 'jRouteDetails', params=data).json
 
     def routes(self):
-        return self.get(self.RESOURCE_NAME, 'jRoutes')
+        return self.get(self.RESOURCE_NAME, 'jRoutes').json['Routes']
 
     def schedule(self, route_id, date=None, incl_variations=None):
         data = {
@@ -91,7 +86,7 @@ class Busroute(BaseAPI):
             'Lon': lon,
             'Radius': radius
         }
-        return self.get(self.RESOURCE_NAME, 'jStops', params=data).json
+        return self.get(self.RESOURCE_NAME, 'jStops', params=data).json['Stops']
 
 class Incidents(BaseAPI):
     RESOURCE_NAME = 'Incidents.svc'
@@ -99,16 +94,16 @@ class Incidents(BaseAPI):
         data = {
             'Route': route
         }
-        return self.get(self.RESOURCE_NAME, 'BusIncidents', params=data).json
+        return self.get(self.RESOURCE_NAME, 'BusIncidents', params=data).json['BusIncidents']
 
-    def elevator_escelator(self, station_code=None):
+    def elevator_escalator(self, station_code=None):
         data = {
             'StationCode': station_code
         }
-        return self.get(self.RESOURCE_NAME, 'ElevatorIncidents', params=data).json
+        return self.get(self.RESOURCE_NAME, 'ElevatorIncidents', params=data).json['ElevatorIncidents']
 
     def rail(self):
-        return self.get(self.RESOURCE_NAME, 'Incidents').json
+        return self.get(self.RESOURCE_NAME, 'Incidents').json['Incidents']
 
 class RailStation(BaseAPI):
     RESOURCE_NAME = 'Rail.svc'
@@ -146,20 +141,21 @@ class RailStation(BaseAPI):
         data = {
             'LineCode': line_code
         }
-        return self.get(self.RESOURCE_NAME, 'jStations', params=data).json
+        return self.get(self.RESOURCE_NAME, 'jStations', params=data).json['Stations']
 
     def timings(self, station_code):
         data = {
             'StationCode': station_code
         }
-        return self.get(self.RESOURCE_NAME, 'jStationTimes', params=data).json
+        return self.get(self.RESOURCE_NAME, 'jStationTimes', params=data).json['StationTimes']
 
     def station_to_station(self, from_station_code=None, to_station_code=None):
         data = {
             'FromStationCode': from_station_code,
             'ToStationCode': to_station_code
         }
-        return self.get(self.RESOURCE_NAME, 'jSrcStationToDstStationInfo', params=data).json
+        return self.get(self.RESOURCE_NAME, 'jSrcStationToDstStationInfo',
+                        params=data).json['StationToStationInfos']
 
 class RailPrediction(BaseAPI):
     RESOURCE_NAME = 'StationPrediction.svc'
