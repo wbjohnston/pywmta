@@ -9,12 +9,10 @@ API_BASE_URL = 'https://api.wmata.com/{service}/json/{endpoint}'
 class WMTAException(Exception):
     pass
 
-class Response:
-    def __init__(self, body):
-        self.raw = body
-        self.body = json.loads(body)
-        self.successful = ''
-        self.error = ''
+# class Response(requests.Response):
+#     def __init__(self, body):
+#         super().__init__()
+#         self.json = json.loads(self.text)
 
 
 class BaseAPI:
@@ -26,16 +24,15 @@ class BaseAPI:
         if self.api_key:
             kwargs.setdefault('params', {})['api_key'] = self.api_key
 
-        response = method(API_BASE_URL.format(service=service,
-                                              endpoint=endpoint),
-                          timeout=self.timeout,
-                          headers={'api_key': self.api_key},
-                          **kwargs)
+        response = method(API_BASE_URL.format(service=service, endpoint=endpoint),
+                                              timeout=self.timeout,
+                                              headers={'api_key': self.api_key},
+                                              **kwargs)
 
+        response.json = json.loads(response.text)
         response.raise_for_status()
 
-        response = Response(response.text)
-        if not response.successful:
+        if not response.ok:
             raise WMTAException(response.error)
 
         return response
@@ -53,6 +50,7 @@ class BaseAPI:
                              **kwargs)
 
 class Busroute(BaseAPI):
+    RESOURCE_NAME = 'Bus.svc'
     def bus_position(self, route_id=None, lat=None, lon=None, radius=None):
         data = {
             'RouteID': route_id,
@@ -60,17 +58,17 @@ class Busroute(BaseAPI):
             'Lon': lon,
             'Radius': radius
         }
-        return self.post('Bus.svc', 'jBusPositions', data=data)
+        return self.post(self.RESOURCE_NAME, 'jBusPositions', data=data)
 
     def path_details(self, route_id, date=None):
         data = {
             'RouteID': route_id,
             'Data': date
         }
-        return self.post('Bus.svc', 'jRouteDetails', data=data)
+        return self.post(self.RESOURCE_NAME, 'jRouteDetails', data=data)
 
     def routes(self):
-        return self.get('Bus.svc', 'jRoutes')
+        return self.get(self.RESOURCE_NAME, 'jRoutes')
 
     def schedule(self, route_id, date=None, incl_variations=None):
         data = {
@@ -78,14 +76,14 @@ class Busroute(BaseAPI):
             'Date': date,
             'IncludingVariations': incl_variations
         }
-        return self.post('Bus.svc', 'jRouteSchedule', data=data)
+        return self.post(self.RESOURCE_NAME, 'jRouteSchedule', data=data)
 
     def schedule_at_stop(self, stop_id, date=None):
         data = {
             'StopID': stop_id,
             'Date': date
         }
-        return self.post('Bus.svc', 'jStopSchedule', data=data)
+        return self.post(self.RESOURCE_NAME, 'jStopSchedule', data=data)
 
     def stop_search(self, lat=None, lon=None, radius=None):
         data = {
@@ -93,40 +91,42 @@ class Busroute(BaseAPI):
             'Lon': lon,
             'Radius': radius
         }
-        return self.post('Bus.svc', 'jStops', data=data)
+        return self.post(self.RESOURCE_NAME, 'jStops', data=data)
 
 class Incidents(BaseAPI):
+    RESOURCE_NAME = 'Incidents.svc'
     def bus(self, route=None):
         data = {
             'Route': route
         }
-        return self.post('Incidents.svc', 'BusIncidents', data=data)
+        return self.post(self.RESOURCE_NAME, 'BusIncidents', data=data)
 
     def elevator_escelator(self, station_code=None):
         data = {
             'StationCode': station_code
         }
-        return self.post('Incidents.svc', 'ElevatorIncidents', data=data)
+        return self.post(self.RESOURCE_NAME, 'ElevatorIncidents', data=data)
 
     def rail(self):
-        return self.post('Incidents.svc', 'Incidents')
+        return self.post(self.RESOURCE_NAME, 'Incidents')
 
 class RailStation(BaseAPI):
+    RESOURCE_NAME = 'Rail.svc'
     def lines(self):
-        return self.get('Rail.svc', 'jLines')
+        return self.get(self.RESOURCE_NAME, 'jLines').json['Lines']
 
     def parking(self, station_code=None):
         data = {
             'StationCode': station_code
         }
-        return self.post('Rail.svc', 'jStationParking', data=data)
+        return self.post(self.RESOURCE_NAME, 'jStationParking', params=data)
 
     def path_between(self, from_station_code, to_station_code):
         data = {
             'FromStationCode': from_station_code,
             'ToStationCode': to_station_code
         }
-        return self.post('Rail.svc', 'jPath', data=data)
+        return self.post(self.RESOURCE_NAME, 'jPath', params=data)
 
     def entrances(self, lat=None, lon=None, radius=None):
         data = {
@@ -134,46 +134,48 @@ class RailStation(BaseAPI):
             'Lon': lon,
             'Radius': radius
         }
-        return self.post('Rail.svc', 'jStationEntrances', data=data)
+        return self.post(self.RESOURCE_NAME, 'jStationEntrances', data=data)
 
     def information(self, station_code):
         data = {
             'StationCode': station_code
         }
-        return self.post('Rail.svc', 'jStationInfo', data=data)
+        return self.post(self.RESOURCE_NAME, 'jStationInfo', params=data)
 
     def list(self, line_code):
         data = {
             'LineCode': line_code
         }
-        return self.post('Rail.svc', 'jStations', data=data)
+        return self.post(self.RESOURCE_NAME, 'jStations', data=data)
 
     def timings(self, station_code):
         data = {
             'StationCode': station_code
         }
-        return self.post('Rail.svc', 'jStationTimes', data=data)
+        return self.post(self.RESOURCE_NAME, 'jStationTimes', data=data)
 
     def station_to_station(self, from_station_code=None, to_station_code=None):
         data = {
             'FromStationCode': from_station_code,
             'ToStationCode': to_station_code
         }
-        return self.post('Rail.svc', 'jSrcStationToDstStationInfo', data=data)
+        return self.post(self.RESOURCE_NAME, 'jSrcStationToDstStationInfo', data=data)
 
 class RailPrediction(BaseAPI):
+    RESOURCE_NAME = 'StationPrediction.svc'
     def next_trains(self, station_codes):
         data = {
             'StationCodes': station_codes
         }
-        return self.get('StationPrediction.svc', 'GetPrediction', params=data)
+        return self.get(self.RESOURCE_NAME, 'GetPrediction', params=data)
 
 class BusPrediction(BaseAPI):
+    RESOURCE_NAME = 'BusPrediction.svc'
     def next_buses(self, stop_id):
         data = {
             'StopID': stop_id
         }
-        return self.post('NextBusService.svc', 'jPredictions', data=data)
+        return self.post(self.RESOURCE_NAME, 'jPredictions', data=data)
 
 
 class WMTAApi:
