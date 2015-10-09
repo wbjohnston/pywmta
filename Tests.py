@@ -4,6 +4,8 @@ import os
 import logging
 import json
 from pywmta import WMTAApi
+import requests
+from requests.exceptions import HTTPError
 
 BASE_DIR = os.path.dirname(__file__)
 
@@ -19,6 +21,7 @@ class PyWMTATests(unittest.TestCase):
 
         wmta = WMTAApi(key)
         response = wmta.rail_station.information('A01')
+
         print(json.dumps(response, indent=4, separators=(',', ': ')))
 
 
